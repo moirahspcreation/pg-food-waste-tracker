@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -11,7 +10,6 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState("student");
-  const [inviteCode, setInviteCode] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -42,20 +40,6 @@ export default function SignupPage() {
       return;
     }
 
-    if (role === "student" && !inviteCode.trim()) {
-      setMessage("Please enter the invitation code from your PG owner.");
-      return;
-    }
-
-    // Invitation codes will be verified against the database
-    // before student membership is implemented.
-    if (role === "student") {
-      setMessage(
-        "Student registration is not available yet. We first need to set up secure PG invitation verification. Please select PG Owner only if you actually own a PG."
-      );
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -65,7 +49,7 @@ export default function SignupPage() {
         options: {
           data: {
             full_name: cleanName,
-            role: "owner",
+            role: role,
           },
         },
       });
@@ -86,11 +70,13 @@ export default function SignupPage() {
 
       if (data.session) {
         setMessage(
-          "Account created successfully! You can now sign in. Your owner dashboard will be set up next."
+          role === "student"
+            ? "Account created! You can now sign in and join your PG using the invitation code."
+            : "Owner account created successfully! You can now sign in."
         );
       } else {
         setMessage(
-          "Signup request successful! Check your email for a confirmation link, then sign in. If no email arrives, check your spam folder."
+          "Signup successful! Check your email and click the confirmation link. After confirmation, sign in to continue."
         );
       }
     } catch {
@@ -178,29 +164,13 @@ export default function SignupPage() {
                   PG Owner
                 </option>
               </select>
-            </div>
 
-            {role === "student" && (
-              <div>
-                <label htmlFor="inviteCode" className="mb-2 block text-sm font-medium text-gray-300">
-                  PG invitation code
-                </label>
-                <input
-                  id="inviteCode"
-                  name="inviteCode"
-                  type="text"
-                  autoComplete="off"
-                  required
-                  value={inviteCode}
-                  onChange={(event) => setInviteCode(event.target.value)}
-                  placeholder="Enter the code from your PG owner"
-                  className={inputClass}
-                />
-                <p className="mt-2 text-xs leading-5 text-gray-500">
-                  Student registration will be enabled after invitation verification is configured.
-                </p>
-              </div>
-            )}
+              <p className="mt-2 text-xs text-gray-500">
+                {role === "student"
+                  ? "After email verification, sign in and enter your PG invitation code."
+                  : "Select PG Owner only if you actually own a PG."}
+              </p>
+            </div>
 
             <div>
               <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-300">

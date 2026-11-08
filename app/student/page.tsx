@@ -28,10 +28,17 @@ export default function StudentDashboard() {
           error: authError,
         } = await supabase.auth.getUser();
 
-        if (authError || !user) {
-          router.replace("/login");
-          return;
-        }
+        console.log("Logged-in user ID:", user.id);
+
+        const { data: currentProfile, error: currentProfileError } =
+          await supabase
+            .from("profiles")
+            .select("user_id, role")
+            .eq("user_id", user.id)
+            .single();
+
+        console.log("Current profile:", currentProfile);
+        console.log("Profile error:", currentProfileError);
 
         const { data: profile, error: profileError } =
           await supabase
@@ -102,14 +109,18 @@ export default function StudentDashboard() {
       setMessage("Successfully joined your PG!");
       setCode("");
       window.location.reload();
-    } catch (error) {
-      console.error("Join PG error:", error);
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Could not join PG. Please check your invitation code."
-      );
-    } finally {
+    } catch (error: unknown) {
+        console.error("Join PG error:", error);
+
+        const errorMessage =
+          typeof error === "object" &&
+          error !== null &&
+          "message" in error
+            ? String(error.message)
+            : "Unknown error occurred.";
+
+        setMessage("Join PG failed: " + errorMessage);
+      } finally {
       setJoining(false);
     }
   }

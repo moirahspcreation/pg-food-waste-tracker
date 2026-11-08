@@ -39,7 +39,28 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        router.push("/");
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("user_id", data.user.id)
+          .single();
+
+        if (profileError) {
+          setMessage("Could not load your account details. Please try again.");
+          await supabase.auth.signOut();
+          return;
+        }
+
+        if (profile.role === "owner") {
+          router.replace("/dashboard");
+        } else if (profile.role === "student") {
+          router.replace("/student");
+        } else {
+          setMessage("Your account role is not recognized.");
+          await supabase.auth.signOut();
+          return;
+        }
+
         router.refresh();
       }
     } catch {
