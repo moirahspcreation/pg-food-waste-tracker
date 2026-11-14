@@ -99,6 +99,26 @@ export default function StudentDashboard() {
     setJoining(true);
 
     try {
+      const { data: { user }, error: authError } =
+        await supabase.auth.getUser();
+
+      console.log("USER AT JOIN:", user?.id);
+      console.log("AUTH ERROR:", authError);
+
+      if (!user) {
+        throw new Error("No authenticated user found.");
+      }
+
+      const { data: joinProfile, error: joinProfileError } =
+        await supabase
+          .from("profiles")
+          .select("user_id, role")
+          .eq("user_id", user.id)
+          .single();
+
+      console.log("PROFILE AT JOIN:", joinProfile);
+      console.log("PROFILE ERROR AT JOIN:", joinProfileError);
+
       const { error } = await supabase.rpc(
         "redeem_pg_invitation",
         { p_code: invitationCode }
